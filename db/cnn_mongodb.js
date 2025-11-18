@@ -1,47 +1,43 @@
-
-
 import mongoose from 'mongoose';
 
 let isConnected = false;
 
 const conectarAMongoDB = async () => {
-    // 1. Lógica para evitar conexiones duplicadas
-    if (isConnected) {
-        console.log('Ya esta conectado a MongoDB'.green);
-        return;
-    }
+  if (isConnected) {
+    console.log('Ya está conectado a MongoDB');
+    return;
+  }
 
-    try {
-        // 2. Intento de conexión inicial
-        await mongoose.connect(process.env.MONGO_URI); 
-        isConnected = true;
-        console.log('Conectado a MongoDB'.yellow);
-    } catch (error) {
-        console.log('Error al conectar a MongoDB'.red);
-    }
-}
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    isConnected = true;
+    console.log('Conectado a MongoDB');
+  } catch (error) {
+    console.error('Error al conectar a MongoDB:', error);
+  }
+};
 
 const db = mongoose.connection;
 
-// 3. Manejo de eventos de la conexión
 db.on('error', (error) => {
-    isConnected = false;
-    console.log('Error al conectar a MongoDB'.red);
+  isConnected = false;
+  console.log('Error en la conexión MongoDB', error);
 });
 
 db.once('open', () => {
-    isConnected = true;
+  isConnected = true;
+  console.log('Conexión a MongoDB abierta');
 });
 
 db.on('disconnected', () => {
-    isConnected = false;
-    console.log('Desconectado de MongoDB'.yellow);
+  isConnected = false;
+  console.log('Desconectado de MongoDB');
 });
-
 
 process.on('SIGINT', async () => {
-    await mongoose.connection.close();
-    console.log('MongoDB desconectado'.yellow);
-    process.exit(0);
+  await mongoose.connection.close();
+  console.log('MongoDB desconectado');
+  process.exit(0);
 });
+
 export { conectarAMongoDB, isConnected };
